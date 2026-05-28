@@ -109,7 +109,7 @@ def display_result(result: dict):
 def main():
     start_dir = os.getcwd()
     agent = CodingAgent(project_dir=start_dir)
-    print(f"  coding agent — {start_dir}")
+    print(f"  coding agent - {start_dir}")
     print()
 
     while True:
