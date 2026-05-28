@@ -178,6 +178,6 @@ The coding agent includes reference pattern libraries for 7 technology domains:
 
 When generating code, the agent loads relevant patterns as context to produce idiomatic, best-practice code.
 
-## Credit
+## Credits
 
 Developped by **`Naitik!!`**
