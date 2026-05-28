@@ -1,5 +1,7 @@
 .env
 .venv/
+.kilo/
 Data/
 __pycache__/
 *.pyc
+Data/ChatLog.json

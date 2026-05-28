@@ -29,13 +29,7 @@ async def TTS(Text, func=lambda r=None: True) :
             if not os.path.exists(file_path) or os.path.getsize(file_path) == 0:
                 raise Exception("No audio was received. Please verify that your parameters are correct.")
 
-            # Since pygame is disabled due to Python 3.14 compatibility issues,
-            # just generate the audio file and let the web interface handle playback
-            print(f"Generated speech audio file: {file_path}")
-            print(f"Text to speak: {Text}")
-
-            # Return immediately for real-time response
-            return subprocess.Popen(["ffplay", "-autoexit", "-nodisp", file_path])
+            return subprocess.Popen(["ffplay", "-autoexit", "-nodisp", file_path], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         except Exception as e: # Handle any exceptions during the process
             print(f"Error in TTS: {e}")
 

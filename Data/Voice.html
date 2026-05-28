@@ -13,7 +13,7 @@
 
         function startRecognition() {
             recognition = new webkitSpeechRecognition() || new SpeechRecognition();
-            recognition.lang = '';
+            recognition.lang = 'en, hi';
             recognition.continuous = true;
 
             recognition.onresult = function(event) {
