@@ -1,4 +1,4 @@
-# ULTRON — Voice AI Assistant + Coding Agent
+# JARVIS — Voice AI Assistant + Coding Agent
 
 A terminal-based voice AI assistant with an integrated coding agent, accessible from any directory via the `jarvis` command.
 
@@ -17,7 +17,7 @@ A terminal-based voice AI assistant with an integrated coding agent, accessible 
 ## Architecture
 
 ```
-ULTRON/
+Ultimate-Jarvs/
 ├── Main.py                 # Voice assistant entry point (jarvis)
 ├── jarvis.bat              # Windows wrapper — runs from any terminal
 ├── Backend/
@@ -178,6 +178,6 @@ The coding agent includes reference pattern libraries for 7 technology domains:
 
 When generating code, the agent loads relevant patterns as context to produce idiomatic, best-practice code.
 
-## License
+## Credit
 
-MIT
+Developped by **`Naitik!!`**
