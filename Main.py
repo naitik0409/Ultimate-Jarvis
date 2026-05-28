@@ -10,6 +10,7 @@ from Backend.RealtimeSearchEngine import RealtimeSearchEngine
 from Backend.Chatbot import ChatBot
 from Backend.TextToSpeech import TextToSpeech, TTS
 from Backend.SpeechToText import SpeechRecognition
+from Backend.MicControl import is_active, start_listener
 
 env_vars = dotenv_values(".env")
 Username = env_vars.get("Username", "User")
@@ -74,8 +75,12 @@ async def process_ai_query(query: str) -> str:
         ImageExecution = False
         ImageGenerationQuery = ""
 
+        C = any([i for i in Decision if i.startswith("coding")])
         G = any([i for i in Decision if i.startswith("general")])
         R = any([i for i in Decision if i.startswith("realtime")])
+
+        if C:
+            return "coding"
 
         Merged_query = " and ".join(
             [" ".join(i.split()[1:]) for i in Decision if i.startswith("general") or i.startswith("realtime")]
@@ -129,16 +134,17 @@ async def process_ai_query(query: str) -> str:
         return f"Sorry, I encountered an error: {str(e)}"
 
 async def main():
-    # print(f"\n{'='*50}")
-    # print(f"ULTRON AI Assistant")
-    # print(f"{'='*50}")
-    # print(f"\nWelcome, {Username}! Speak 'exit' or 'quit' to end the session.\n")
-
-    # print(DefaultMessage)
-    # print()
+    start_listener()
+    print(f"\n  Mic active. Press Ctrl+Shift+M to toggle sleep mode.\n")
 
     while True:
         try:
+            if not is_active():
+                print(f"\r  Sleep mode. Press Ctrl+Shift+M to wake.", end="")
+                while not is_active():
+                    await asyncio.sleep(0.5)
+                print(f"\r  Mic active.                   ")
+
             print(f"\nListening...")
             user_input = SpeechRecognition().strip()
 
@@ -157,6 +163,16 @@ async def main():
             print(f"\n{Assistantname} is thinking...")
 
             response = await process_ai_query(user_input)
+
+            if response == "coding":
+                print(f"\n{Assistantname}: Launching Coding Agent...")
+                save_chat_message("assistant", "Launching Coding Agent")
+                try:
+                    import Coding_agent.cli
+                    Coding_agent.cli.main()
+                except Exception as e:
+                    print(f"Coding Agent error: {e}")
+                continue
 
             save_chat_message("assistant", response)
 

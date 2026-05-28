@@ -30,6 +30,7 @@ class QueryType(str, Enum):
     GOOGLE_SEARCH = "google search"
     YOUTUBE_SEARCH = "youtube search"
     REMINDER = "reminder"
+    CODING = "coding"
 
 
 FUNCTIONS = [t.value for t in QueryType]
@@ -51,6 +52,7 @@ CATEGORIES:
 - google search (topic) — search Google
 - youtube search (topic) — search YouTube
 - reminder (datetime with message) — set a reminder
+- coding (task) — user wants to build, edit, debug, or get help with code (apps, scripts, websites, etc.)
 - exit — user wants to end the conversation
 
 RULES:
@@ -67,6 +69,12 @@ User: who is the prime minister of india
 Assistant: realtime who is the prime minister of india
 User: set a reminder at 9pm on 25th june for business meeting
 Assistant: reminder 9:00pm 25th june business meeting
+User: build a todo app in react
+Assistant: coding build a todo app in react
+User: change the button color to blue
+Assistant: coding change the button color to blue
+User: why is my code not working
+Assistant: coding why is my code not working
 User: bye
 Assistant: exit
 """

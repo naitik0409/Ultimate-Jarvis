@@ -1,21 +1,16 @@
-import json  # Ensure the import is used
+import json
 from json import load, dump
 from dotenv import dotenv_values
-import requests
 import datetime
 from groq import Groq
 
-try:
-    env_vars = dotenv_values(".env")
-    Username = env_vars.get("Username", "User")
-    Assistantname = env_vars.get("Assistantname", "Assistant")
-    GroqAPIKey = env_vars.get("GroqAPIKey")
-except Exception:
-    Username = "User"
-    Assistantname = "Assistant"
-    GroqAPIKey = None
+env_vars = dotenv_values(".env")
+Username = env_vars.get("Username", "User")
+Assistantname = env_vars.get("Assistantname", "Assistant")
+GroqAPIKey = env_vars.get("GroqAPIKey")
+GroqChatModel = env_vars.get("GroqChatModel", "llama-3.3-70b-versatile")
+GroqChatFallback = env_vars.get("GroqChatFallback", "llama-3.1-8b-instant")
 
-# Initialize Groq client only if API key is available
 client = Groq(api_key=GroqAPIKey) if GroqAPIKey else None
 
 messages = []
@@ -62,48 +57,44 @@ def AnswerModifier(Answer):
     modified_answer = '\n'.join(non_empty_lines)
     return modified_answer
 
-def ChatBot(Query):
-    """ This function sends the user's query to the chatbot and returns the AI's response """
+def _chat_query(model: str, query: str) -> str:
+    with open(r"Data\ChatLog.json", "r") as f:
+        messages = load(f)
 
-    # Check if Groq client is available
+    filtered_messages = [{"role": msg["role"], "content": msg["content"]} for msg in messages]
+    filtered_messages.append({"role": "user", "content": f"{query}"})
+
+    completion = client.chat.completions.create(
+        model=model,
+        messages=SystemChatBot + [{"role": "system", "content": RealtimeInformation()}] + filtered_messages,
+        max_tokens=1024,
+        temperature=0.7,
+        top_p=1,
+        stream=True,
+        stop=None
+    )
+
+    Answer = ""
+    for chunk in completion:
+        if chunk.choices[0].delta.content:
+            Answer += chunk.choices[0].delta.content
+
+    return Answer.replace("</s>", "")
+
+def ChatBot(Query):
     if client is None:
         return "AI service is not configured. Please set up your Groq API key in the .env file."
 
-    try:
-        with open(r"Data\ChatLog.json", "r") as f:
-            messages = load(f)
+    models = [GroqChatModel, GroqChatFallback]
 
-        # Filter out timestamps from messages as Groq API doesn't support them
-        filtered_messages = [{"role": msg["role"], "content": msg["content"]} for msg in messages]
+    for model in models:
+        try:
+            return _chat_query(model, Query)
+        except Exception as e:
+            print(f"Groq error on {model}: {e}")
+            continue
 
-        filtered_messages.append({"role": "user", "content": f"{Query}"})
-
-        completion = client.chat.completions.create(
-            model="llama-3.3-70b-versatile",
-            messages=SystemChatBot + [{"role": "system", "content": RealtimeInformation()}] + filtered_messages,
-            max_tokens=1024,
-            temperature=0.7,
-            top_p=1,
-            stream=True,
-            stop=None
-        )
-
-        Answer = ""
-
-        for chunk in completion:
-            if chunk.choices[0].delta.content:
-                Answer += chunk.choices[0].delta.content
-
-        Answer = Answer.replace("</s>", "")
-
-        return Answer  # Return the answer to the main function
-
-    except requests.exceptions.RequestException as e:
-        print(f"Connection error: {e}")
-        return "Connection error, please try again."
-    except Exception as e:
-        print(f"Error: {e}")
-        return "An error occurred, please try again."
+    return "AI service is currently unavailable. Please try again later."
 
 if __name__ == "__main__":
     while True:

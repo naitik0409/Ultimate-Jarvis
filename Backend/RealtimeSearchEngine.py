@@ -11,6 +11,8 @@ env_vars = dotenv_values(".env")
 Username = env_vars.get("Username", "User")
 Assistantname = env_vars.get("Assistantname", "Assistant")
 GroqAPIKey = env_vars.get("GroqAPIKey")
+GroqSearchModel = env_vars.get("GroqSearchModel", "llama-3.1-8b-instant")
+GroqSearchFallback = env_vars.get("GroqSearchFallback", "llama-3.3-70b-versatile")
 
 client = Groq(api_key=GroqAPIKey) if GroqAPIKey else None
 
@@ -105,16 +107,13 @@ def Information():
     return data
 
 
-def RealtimeSearchEngine(prompt: str, chat_history: list) -> str:
-    if client is None:
-        return "AI service is not configured. Please set up your Groq API key in the .env file."
-
+def _search_query(model: str, prompt: str, chat_history: list) -> str:
     filtered_messages = [{"role": msg["role"], "content": msg["content"]} for msg in chat_history]
 
     SystemChatBot.append({"role": "system", "content": TavilySearch(prompt)})
 
     completion = client.chat.completions.create(
-        model="llama-3.1-8b-instant",
+        model=model,
         messages=SystemChatBot + [{"role": "system", "content": Information()}] + filtered_messages,
         max_tokens=2048,
         temperature=0.7,
@@ -133,6 +132,22 @@ def RealtimeSearchEngine(prompt: str, chat_history: list) -> str:
 
     SystemChatBot.pop()
     return AnswerModifier(Answer=Answer)
+
+
+def RealtimeSearchEngine(prompt: str, chat_history: list) -> str:
+    if client is None:
+        return "AI service is not configured. Please set up your Groq API key in the .env file."
+
+    models = [GroqSearchModel, GroqSearchFallback]
+
+    for model in models:
+        try:
+            return _search_query(model, prompt, chat_history)
+        except Exception as e:
+            print(f"Groq error on {model}: {e}")
+            continue
+
+    return "AI service is currently unavailable. Please try again later."
 
 
 if __name__ == "__main__":
