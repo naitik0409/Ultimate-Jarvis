@@ -96,8 +96,9 @@ class Brain:
         q_clean = re.sub(r'\[voice:.*?\]', '', q).strip().rstrip(".?!").strip()
 
         follow_up_words = {"yes", "yeah", "yep", "sure", "okay", "ok", "no", "nope", "nah",
-                           "thanks", "thank you", "good", "great", "fine", "alright", "right",
-                           "correct", "exactly", "please", "sorry", "my bad"}
+                           "nothing", "nope", "nah", "thanks", "thank you", "good", "great",
+                           "fine", "alright", "right", "correct", "exactly", "please",
+                           "sorry", "my bad"}
 
         if q_clean in follow_up_words:
             return [(dec.IntentType.GENERAL, q)]
