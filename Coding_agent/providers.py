@@ -32,16 +32,16 @@ if coding_groq_key:
     )
 
 DEFAULT_MODELS = {
-    "orchestrator":       ("openrouter", "deepseek/deepseek-chat"),
+    "orchestrator":       ("groq",       "llama-3.3-70b-versatile"),
     "explainer":          ("groq",       "llama-3.3-70b-versatile"),
-    "workflow":           ("openrouter", "deepseek/deepseek-r1"),
-    "reasoning":          ("openrouter", "deepseek/deepseek-r1"),
-    "code_gen":           ("openrouter", "qwen/qwen-2.5-coder-32b-instruct"),
-    "editing":            ("openrouter", "qwen/qwen-2.5-coder-32b-instruct"),
+    "workflow":           ("groq",       "llama-3.3-70b-versatile"),
+    "reasoning":          ("groq",       "llama-3.3-70b-versatile"),
+    "code_gen":           ("groq",       "mixtral-8x7b-32768"),
+    "editing":            ("groq",       "mixtral-8x7b-32768"),
     "debugger":           ("groq",       "llama-3.3-70b-versatile"),
     "asking":             ("groq",       "llama-3.3-70b-versatile"),
-    "gen_ai":             ("openrouter", "deepseek/deepseek-chat"),
-    "colaborator":        ("openrouter", "deepseek/deepseek-chat"),
+    "gen_ai":             ("groq",       "llama-3.3-70b-versatile"),
+    "colaborator":        ("groq",       "llama-3.3-70b-versatile"),
 }
 
 ENV_MODEL_MAP = {

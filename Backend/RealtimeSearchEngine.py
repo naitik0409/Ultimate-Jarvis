@@ -89,8 +89,6 @@ def AnswerModifier(Answer):
 
 SystemChatBot = [
     {"role": "system", "content": System},
-    {"role": "user", "content": "Hi"},
-    {"role": "assistant", "content": "Hello, Sir, how can I help you?"}
 ]
 
 
@@ -116,11 +114,16 @@ def Information():
 def _search_query(model: str, prompt: str, chat_history: list) -> str:
     filtered_messages = [{"role": msg["role"], "content": msg["content"]} for msg in chat_history]
 
-    SystemChatBot.append({"role": "system", "content": TavilySearch(prompt)})
+    search_results = TavilySearch(prompt)
+
+    messages = SystemChatBot + [
+        {"role": "system", "content": Information()},
+        {"role": "system", "content": search_results},
+    ] + filtered_messages
 
     completion = client.chat.completions.create(
         model=model,
-        messages=SystemChatBot + [{"role": "system", "content": Information()}] + filtered_messages,
+        messages=messages,
         max_tokens=2048,
         temperature=0.7,
         top_p=1,
@@ -136,7 +139,6 @@ def _search_query(model: str, prompt: str, chat_history: list) -> str:
 
     Answer = Answer.strip().replace("</s>", "")
 
-    SystemChatBot.pop()
     return AnswerModifier(Answer=Answer)
 
 

@@ -118,13 +118,13 @@ class ProviderRouter:
 
         self.chains["general"] = ProviderChain("general", groq_endpoints)
         self.chains["realtime_search"] = ProviderChain("realtime_search", groq_endpoints)
-        self.chains["coding_orchestrator"] = ProviderChain("coding_orchestrator", openrouter_endpoints or deepseek_endpoints or groq_endpoints)
-        self.chains["coding_reasoning"] = ProviderChain("coding_reasoning", openrouter_endpoints or deepseek_endpoints or groq_endpoints)
-        self.chains["coding_codegen"] = ProviderChain("coding_codegen", openrouter_endpoints or deepseek_endpoints or groq_endpoints)
-        self.chains["coding_editing"] = ProviderChain("coding_editing", openrouter_endpoints or deepseek_endpoints or groq_endpoints)
+        self.chains["coding_orchestrator"] = ProviderChain("coding_orchestrator", groq_endpoints or deepseek_endpoints or openrouter_endpoints)
+        self.chains["coding_reasoning"] = ProviderChain("coding_reasoning", groq_endpoints or deepseek_endpoints or openrouter_endpoints)
+        self.chains["coding_codegen"] = ProviderChain("coding_codegen", groq_endpoints or deepseek_endpoints or openrouter_endpoints)
+        self.chains["coding_editing"] = ProviderChain("coding_editing", groq_endpoints or deepseek_endpoints or openrouter_endpoints)
         self.chains["coding_debugger"] = ProviderChain("coding_debugger", groq_endpoints)
-        self.chains["coding_explainer"] = ProviderChain("coding_explainer", groq_endpoints or openrouter_endpoints)
-        self.chains["coding_genai"] = ProviderChain("coding_genai", openrouter_endpoints or deepseek_endpoints or groq_endpoints)
+        self.chains["coding_explainer"] = ProviderChain("coding_explainer", groq_endpoints or deepseek_endpoints or openrouter_endpoints)
+        self.chains["coding_genai"] = ProviderChain("coding_genai", groq_endpoints or deepseek_endpoints or openrouter_endpoints)
 
     def get_chain(self, name: str) -> ProviderChain:
         chain = self.chains.get(name)

@@ -3,11 +3,11 @@ import asyncio
 import os
 
 from Backend.TextToSpeech import TextToSpeech, TTS
-from Backend.STT import SpeechRecognition, voice_analysis
-from Backend.STT.recorder import record_audio
+from Backend.STT import SpeechRecognition
 from Backend.MicControl import is_active, start_listener
 from Backend.brain import Brain
 from Backend.brain.memory import store_chat_message, initialize_chat_log
+from Backend.TTS import describe as describe_tts
 from Coding_agent.agentic_ai import CodingAgent
 from Coding_agent.cli import handle_command, format_for_speech
 
@@ -126,10 +126,6 @@ async def main():
 
             print("  > Listening...")
 
-            audio = record_audio(duration=5)
-            if audio is not None:
-                voice_analysis.analyze(audio)
-
             user_input = SpeechRecognition().strip()
 
             if not user_input:
@@ -148,13 +144,7 @@ async def main():
 
             print(f"\n  {Username}: {user_input}")
 
-            voice_summary = voice_analysis.get_summary()
-            if voice_summary:
-                augmented_input = f"{user_input} [voice: {voice_summary}]"
-            else:
-                augmented_input = user_input
-
-            result = brain.process(augmented_input)
+            result = brain.process(user_input)
 
             if result["action"] == "exit":
                 print(f"\n  {Assistantname}: {result['response']}")
@@ -169,14 +159,16 @@ async def main():
                 print()
                 continue
 
-            response = result["response"]
+            response = result["response"] or "I didn't catch that. Could you repeat?"
             print(f"  {Assistantname}: {response}")
 
-            if response:
-                try:
-                    await TextToSpeech(response)
-                except Exception as e:
-                    print(f"TTS Error: {e}")
+            try:
+                await TextToSpeech(response)
+                tts_desc = describe_tts()
+                if tts_desc:
+                    print(f"  [tts: {tts_desc}]")
+            except Exception as e:
+                print(f"TTS Error: {e}")
 
         except KeyboardInterrupt:
             print(f"\n  Goodbye, {Username}!")

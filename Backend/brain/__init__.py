@@ -21,14 +21,21 @@ class Brain:
         self.coding_agent = agent
 
     def process(self, query: str) -> dict:
-        self.short_term.add("user", query)
+        import re
+        clean_query = re.sub(r'\s*\[voice:.*?\]', '', query).strip()
+        voice_meta = re.search(r'\[voice:(.*?)\]', query)
+        voice_summary = voice_meta.group(1).strip() if voice_meta else ""
 
-        cohere_decisions = FirstLayerDMM(query)
+        self.short_term.add("user", clean_query)
+
+        cohere_decisions = FirstLayerDMM(clean_query)
         intents = dec.map_cohere_to_intent(cohere_decisions)
+        intents = self._override_intents(clean_query, intents)
         intents = dec.prioritize_intents(intents)
 
         result = {
-            "query": query,
+            "query": clean_query,
+            "voice": voice_summary,
             "intents": [(t.value, q) for t, q in intents],
             "response": "",
             "action": "none",
@@ -66,21 +73,58 @@ class Brain:
             result["action"] = "realtime_search"
             chat_history = memory.get_recent_chat(20)
             response = RealtimeSearchEngine(primary_query or query, chat_history)
-            result["response"] = response
+            result["response"] = response or self._fallback_response(query)
             self._save_both(query, result["response"])
             return result
 
         if primary_intent == dec.IntentType.GENERAL:
             result["action"] = "general_chat"
             response = ChatBot(primary_query or query)
-            result["response"] = response
+            result["response"] = response or self._fallback_response(query)
             self._save_both(query, result["response"])
             return result
 
-        result["response"] = ChatBot(query)
+        response = ChatBot(query)
+        result["response"] = response or self._fallback_response(query)
         result["action"] = "general_chat"
         self._save_both(query, result["response"])
         return result
+
+    def _override_intents(self, query: str, intents: list[tuple]) -> list[tuple]:
+        q = query.lower().strip()
+        import re
+        q_clean = re.sub(r'\[voice:.*?\]', '', q).strip().rstrip(".?!").strip()
+
+        follow_up_words = {"yes", "yeah", "yep", "sure", "okay", "ok", "no", "nope", "nah",
+                           "thanks", "thank you", "good", "great", "fine", "alright", "right",
+                           "correct", "exactly", "please", "sorry", "my bad"}
+
+        if q_clean in follow_up_words:
+            return [(dec.IntentType.GENERAL, q)]
+
+        has_realtime_keywords = any(w in q for w in ("weather", "temperature", "rain", "news", "headlines", "stock", "price of", "current time", "time in", "latest", "score", "match"))
+        is_general = any(t == dec.IntentType.GENERAL for t, _ in intents)
+
+        if has_realtime_keywords and is_general:
+            return [(dec.IntentType.REALTIME, q)]
+        return intents
+
+    def _fallback_response(self, query: str) -> str:
+        query_lower = query.lower().strip()
+        if "who are you" in query_lower or "what is your name" in query_lower:
+            return f"I am {self.assistant_name}, your AI assistant."
+        if "how are you" in query_lower:
+            return f"I'm functioning optimally, thank you for asking."
+        if "weather" in query_lower or "temperature" in query_lower:
+            return "I can check the weather for you. Please hold on while I look that up."
+        if any(w in query_lower for w in ("time", "date", "day")):
+            from datetime import datetime
+            return datetime.now().strftime("It is %A, %B %d, %Y at %I:%M %p.")
+        if "hello" in query_lower or "hi " in query_lower or query_lower == "hi":
+            return f"Hello {self.username}. How can I assist you today?"
+        if "bye" in query_lower or "goodbye" in query_lower:
+            return f"Goodbye, {self.username}!"
+        return f"I apologize, I'm having trouble processing that. Could you rephrase your question?"
 
     def _save_both(self, user_query: str, response: str):
         memory.store_chat_message("user", user_query)

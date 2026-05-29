@@ -118,30 +118,6 @@ def play_media(query: str) -> str:
         except ImportError:
             return "Keyboard module not installed."
 
-    if "volume up" in query or "increase volume" in query:
-        try:
-            import keyboard
-            keyboard.press_and_release("volume up")
-            return "Increasing volume."
-        except ImportError:
-            return "Keyboard module not installed."
-
-    if "volume down" in query or "decrease volume" in query:
-        try:
-            import keyboard
-            keyboard.press_and_release("volume down")
-            return "Decreasing volume."
-        except ImportError:
-            return "Keyboard module not installed."
-
-    if "mute" in query:
-        try:
-            import keyboard
-            keyboard.press_and_release("volume mute")
-            return "Toggling mute."
-        except ImportError:
-            return "Keyboard module not installed."
-
     try:
         subprocess.Popen(["start", query], shell=True)
         return f"Trying to play {query}."
@@ -149,8 +125,24 @@ def play_media(query: str) -> str:
         return f"Could not play media: {e}"
 
 
+def _volume_action(key: str, label: str) -> str:
+    try:
+        import keyboard
+        keyboard.press_and_release(key)
+        return f"{label}."
+    except ImportError:
+        return "Keyboard module not available for volume control."
+
+
 def system_control(query: str) -> str:
     query = query.lower().strip()
+
+    if any(w in query for w in ("volume up", "increase volume", "volume higher", "turn up volume", "louder")):
+        return _volume_action("volume up", "Increasing volume")
+    if any(w in query for w in ("volume down", "decrease volume", "volume lower", "turn down volume", "quieter")):
+        return _volume_action("volume down", "Decreasing volume")
+    if "mute" in query or "unmute" in query or "silence" in query:
+        return _volume_action("volume mute", "Toggling mute")
 
     if "shutdown" in query or "turn off" in query:
         try:
